@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Booking {
+  id              String   @id @default(cuid())
+  guestName       String
+  guestEmail      String
+  guestPhone      String?
+  checkIn         DateTime
+  checkOut        DateTime
+  guests          Int      @default(1)
+  nights          Int
+  nightlyRate     Float
+  cleaningFee     Float    @default(0)
+  discountAmount  Float    @default(0)
+  totalPrice      Float
+  status          BookingStatus @default(PENDING)
+  stripeSessionId String?  @unique
+  stripePaymentId String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([checkIn, checkOut])
+  @@index([status])
+}
+
+model BlockedDate {
+  id        String      @id @default(cuid())
+  startDate DateTime
+  endDate   DateTime
+  source    BlockSource @default(MANUAL)
+  note      String?
+  createdAt DateTime    @default(now())
+
+  @@index([startDate, endDate])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  read      Boolean  @default(false)
+  repliedAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model PricingConfig {
+  id               String  @id @default(cuid())
+  nightlyRate      Float   @default(120)
+  weekendSurcharge Float   @default(0)
+  cleaningFee      Float   @default(40)
+  minNights        Int     @default(1)
+  maxNights        Int     @default(90)
+  updatedAt        DateTime @updatedAt
+}
+
+model DiscountRule {
+  id              String  @id @default(cuid())
+  minNights       Int
+  discountPercent Float
+  label           String
+  active          Boolean @default(true)
+  createdAt       DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  guestName String
+  rating    Float
+  comment   String
+  reviewDate DateTime
+  source    String   @default("manual")
+  featured  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REFUNDED
+}
+
+enum BlockSource {
+  AIRBNB_ICAL
+  MANUAL
+}
