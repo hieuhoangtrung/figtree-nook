@@ -80,16 +80,24 @@ Please also note that the bathroom ceiling is slightly lower than 2 meters (appr
     location: 4.8,
     value: 4.9,
   },
-  // Photos — replace with actual hosted images in production
+  // Photos scraped from Airbnb listing
   photos: [
-    { src: '/images/studio-main.jpg', alt: 'Studio main living area with queen bed and sofa' },
-    { src: '/images/dining-desk.jpg', alt: 'Dining table and dedicated workspace' },
+    { src: '/images/studio-main.jpg', alt: 'Private studio — queen bed, sofa and living area' },
+    { src: '/images/dining-desk.jpg', alt: 'Dining table and dedicated workspace by the window' },
     { src: '/images/exterior.jpg', alt: 'Exterior view with private entrance' },
-    { src: '/images/kitchen.jpg', alt: 'Kitchenette with dining table' },
-    { src: '/images/local-guide.jpg', alt: 'Local area guide' },
-    { src: '/images/backyard.jpg', alt: 'Shared backyard and outdoor area' },
-    { src: '/images/bathroom.jpg', alt: 'Private bathroom' },
+    { src: '/images/kitchen.jpg', alt: 'Kitchen and dining area' },
+    { src: '/images/kitchenette.jpg', alt: 'Tidy and functional kitchenette' },
+    { src: '/images/bathroom.jpg', alt: 'Private bathroom with shower gel, shampoo and conditioner' },
+    { src: '/images/living-area.jpg', alt: 'Comfortable living area' },
     { src: '/images/bed-detail.jpg', alt: 'Comfortable queen bed with blackout blinds' },
+    { src: '/images/studio-angle2.jpg', alt: 'Studio from another angle' },
+    { src: '/images/kitchen-sink.jpg', alt: 'Kitchen sink and dishes drying rack' },
+    { src: '/images/local-guide.jpg', alt: 'Local area Wollongong & Shellharbour guide' },
+    { src: '/images/welcome-treats.jpg', alt: 'Complimentary chocolate and variety of tea' },
+    { src: '/images/cookware.jpg', alt: 'Non-stick pots and pans' },
+    { src: '/images/cutlery.jpg', alt: 'Cutlery provided' },
+    { src: '/images/utensils.jpg', alt: 'Cooking utensils' },
+    { src: '/images/plates.jpg', alt: 'Plates and bowls' },
   ],
 };
 
