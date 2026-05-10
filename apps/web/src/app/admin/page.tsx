@@ -68,7 +68,7 @@ export default function AdminDashboard() {
             <p className="text-airbnb-gray text-sm">No upcoming bookings.</p>
           ) : (
             <div className="space-y-4">
-              {upcomingBookings?.map((b: { id: string; guestName: string; checkIn: string; checkOut: string; nights: number; guests: number; totalPrice: number }) => (
+              {upcomingBookings?.map((b: { id: string; guestName: string; checkIn: string; checkOut: string; nights: number; guests: number; totalPrice: number; status: string }) => (
                 <div key={b.id} className="flex items-center justify-between border-b border-airbnb-border pb-4 last:border-0 last:pb-0">
                   <div>
                     <p className="font-medium text-sm">{b.guestName}</p>
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
             <p className="text-airbnb-gray text-sm">No recent bookings.</p>
           ) : (
             <div className="space-y-4">
-              {recentBookings?.map((b: { id: string; guestName: string; status: string; totalPrice: number; checkIn: string }) => (
+              {recentBookings?.map((b: { id: string; guestName: string; status: string; totalPrice: number; checkIn: string; nights?: number; guests?: number }) => (
                 <div key={b.id} className="flex items-center justify-between border-b border-airbnb-border pb-4 last:border-0 last:pb-0">
                   <div>
                     <p className="font-medium text-sm">{b.guestName}</p>

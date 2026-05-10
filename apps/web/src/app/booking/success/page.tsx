@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getBookingBySession } from '@/lib/api';
@@ -7,7 +8,7 @@ import { formatDate, formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
 import { CheckCircle, Calendar, Users, Home } from 'lucide-react';
 
-export default function BookingSuccessPage() {
+function BookingSuccessInner() {
   const params = useSearchParams();
   const sessionId = params.get('session_id') || '';
 
@@ -90,5 +91,13 @@ export default function BookingSuccessPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function BookingSuccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-airbnb-pink border-t-transparent rounded-full animate-spin" /></div>}>
+      <BookingSuccessInner />
+    </Suspense>
   );
 }

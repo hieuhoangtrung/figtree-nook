@@ -5,10 +5,22 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAdminMessages, markMessageRead } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
-import { Mail, MailOpen, Trash2 } from 'lucide-react';
+import { Mail, MailOpen } from 'lucide-react';
+
+interface Message {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  subject?: string | null;
+  message: string;
+  read: boolean;
+  createdAt: string;
+  repliedAt?: string | null;
+}
 
 export default function AdminMessagesPage() {
-  const [selected, setSelected] = useState<Record<string, unknown> | null>(null);
+  const [selected, setSelected] = useState<Message | null>(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -43,10 +55,10 @@ export default function AdminMessagesPage() {
             <div className="text-center py-12 text-airbnb-gray">No messages yet.</div>
           ) : (
             <div className="divide-y divide-airbnb-border">
-              {messages.map((m: Record<string, unknown>) => (
+              {messages.map((m: Message) => (
                 <button
-                  key={m.id as string}
-                  onClick={() => { setSelected(m); if (!m.read) doRead(m.id as string); }}
+                  key={m.id}
+                  onClick={() => { setSelected(m); if (!m.read) doRead(m.id); }}
                   className={`w-full text-left p-4 hover:bg-airbnb-light transition-colors ${selected?.id === m.id ? 'bg-airbnb-light' : ''}`}
                 >
                   <div className="flex items-start gap-3">
@@ -54,9 +66,9 @@ export default function AdminMessagesPage() {
                       {m.read ? <MailOpen className="w-4 h-4 text-airbnb-gray" /> : <Mail className="w-4 h-4 text-airbnb-pink" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm ${!m.read ? 'font-semibold' : 'font-medium'} truncate`}>{m.name as string}</p>
-                      <p className="text-xs text-airbnb-gray truncate">{m.subject as string || (m.message as string).slice(0, 40)}</p>
-                      <p className="text-xs text-airbnb-gray mt-0.5">{formatDate(m.createdAt as string, 'd MMM yyyy')}</p>
+                      <p className={`text-sm ${!m.read ? 'font-semibold' : 'font-medium'} truncate`}>{m.name}</p>
+                      <p className="text-xs text-airbnb-gray truncate">{m.subject || m.message.slice(0, 40)}</p>
+                      <p className="text-xs text-airbnb-gray mt-0.5">{formatDate(m.createdAt, 'd MMM yyyy')}</p>
                     </div>
                     {!m.read && <div className="w-2 h-2 rounded-full bg-airbnb-pink flex-shrink-0 mt-1" />}
                   </div>
@@ -79,20 +91,20 @@ export default function AdminMessagesPage() {
             <div>
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h2 className="text-lg font-semibold">{selected.name as string}</h2>
-                  <p className="text-sm text-airbnb-gray">{selected.email as string}</p>
-                  {selected.phone && <p className="text-sm text-airbnb-gray">{selected.phone as string}</p>}
-                  <p className="text-xs text-airbnb-gray mt-1">{formatDate(selected.createdAt as string)}</p>
+                  <h2 className="text-lg font-semibold">{selected.name}</h2>
+                  <p className="text-sm text-airbnb-gray">{selected.email}</p>
+                  {selected.phone && <p className="text-sm text-airbnb-gray">{selected.phone}</p>}
+                  <p className="text-xs text-airbnb-gray mt-1">{formatDate(selected.createdAt)}</p>
                 </div>
               </div>
               {selected.subject && (
-                <p className="font-medium text-sm mb-3">Subject: {selected.subject as string}</p>
+                <p className="font-medium text-sm mb-3">Subject: {selected.subject}</p>
               )}
               <div className="bg-airbnb-light rounded-xl p-4 text-sm whitespace-pre-wrap leading-relaxed mb-6">
-                {selected.message as string}
+                {selected.message}
               </div>
               <a
-                href={`mailto:${selected.email as string}?subject=Re: ${selected.subject || 'Your enquiry about Figtree Nook'}`}
+                href={`mailto:${selected.email}?subject=Re: ${selected.subject || 'Your enquiry about Figtree Nook'}`}
                 className="btn-primary inline-flex items-center gap-2 text-sm py-2.5 px-5"
               >
                 <Mail className="w-4 h-4" />

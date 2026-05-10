@@ -5,7 +5,22 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAdminBookings, updateBooking } from '@/lib/api';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import toast from 'react-hot-toast';
-import { Search, Filter } from 'lucide-react';
+import { Filter } from 'lucide-react';
+
+interface Booking {
+  id: string;
+  guestName: string;
+  guestEmail: string;
+  guestPhone?: string | null;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  nights: number;
+  totalPrice: number;
+  status: string;
+  createdAt: string;
+  notes?: string | null;
+}
 
 const statusColors: Record<string, string> = {
   CONFIRMED: 'bg-green-100 text-green-700',
@@ -17,7 +32,7 @@ const statusColors: Record<string, string> = {
 export default function AdminBookingsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
-  const [selectedBooking, setSelectedBooking] = useState<Record<string, unknown> | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -79,26 +94,26 @@ export default function AdminBookingsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-airbnb-border">
-                {bookings.map((b: Record<string, unknown>) => (
-                  <tr key={b.id as string} className="hover:bg-airbnb-light transition-colors">
+                {bookings.map((b: Booking) => (
+                  <tr key={b.id} className="hover:bg-airbnb-light transition-colors">
                     <td className="px-4 py-4">
-                      <p className="font-medium text-sm">{b.guestName as string}</p>
-                      <p className="text-xs text-airbnb-gray">{b.guestEmail as string}</p>
-                      {b.guestPhone && <p className="text-xs text-airbnb-gray">{b.guestPhone as string}</p>}
+                      <p className="font-medium text-sm">{b.guestName}</p>
+                      <p className="text-xs text-airbnb-gray">{b.guestEmail}</p>
+                      {b.guestPhone && <p className="text-xs text-airbnb-gray">{b.guestPhone}</p>}
                     </td>
                     <td className="px-4 py-4 text-sm">
-                      <p>{formatDate(b.checkIn as string, 'd MMM yy')}</p>
-                      <p className="text-airbnb-gray">→ {formatDate(b.checkOut as string, 'd MMM yy')}</p>
-                      <p className="text-xs text-airbnb-gray">{b.nights as number} nights</p>
+                      <p>{formatDate(b.checkIn, 'd MMM yy')}</p>
+                      <p className="text-airbnb-gray">→ {formatDate(b.checkOut, 'd MMM yy')}</p>
+                      <p className="text-xs text-airbnb-gray">{b.nights} nights</p>
                     </td>
-                    <td className="px-4 py-4 text-sm">{b.guests as number}</td>
-                    <td className="px-4 py-4 text-sm font-semibold">{formatCurrency(b.totalPrice as number)}</td>
+                    <td className="px-4 py-4 text-sm">{b.guests}</td>
+                    <td className="px-4 py-4 text-sm font-semibold">{formatCurrency(b.totalPrice)}</td>
                     <td className="px-4 py-4">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[b.status as string] || ''}`}>
-                        {b.status as string}
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[b.status] || ''}`}>
+                        {b.status}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-xs text-airbnb-gray">{formatDate(b.createdAt as string, 'd MMM yy')}</td>
+                    <td className="px-4 py-4 text-xs text-airbnb-gray">{formatDate(b.createdAt, 'd MMM yy')}</td>
                     <td className="px-4 py-4">
                       <button
                         onClick={() => setSelectedBooking(b)}
@@ -131,22 +146,22 @@ export default function AdminBookingsPage() {
           <div className="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
             <h3 className="text-lg font-semibold mb-4">Manage Booking</h3>
             <div className="space-y-2 text-sm mb-6">
-              <p><strong>Guest:</strong> {selectedBooking.guestName as string}</p>
-              <p><strong>Email:</strong> {selectedBooking.guestEmail as string}</p>
-              <p><strong>Phone:</strong> {selectedBooking.guestPhone as string || 'N/A'}</p>
-              <p><strong>Check-in:</strong> {formatDate(selectedBooking.checkIn as string)}</p>
-              <p><strong>Check-out:</strong> {formatDate(selectedBooking.checkOut as string)}</p>
-              <p><strong>Nights:</strong> {selectedBooking.nights as number}</p>
-              <p><strong>Guests:</strong> {selectedBooking.guests as number}</p>
-              <p><strong>Total:</strong> {formatCurrency(selectedBooking.totalPrice as number)}</p>
-              <p><strong>Status:</strong> <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[selectedBooking.status as string]}`}>{selectedBooking.status as string}</span></p>
-              {selectedBooking.notes && <p><strong>Notes:</strong> {selectedBooking.notes as string}</p>}
+              <p><strong>Guest:</strong> {selectedBooking.guestName}</p>
+              <p><strong>Email:</strong> {selectedBooking.guestEmail}</p>
+              <p><strong>Phone:</strong> {selectedBooking.guestPhone || 'N/A'}</p>
+              <p><strong>Check-in:</strong> {formatDate(selectedBooking.checkIn)}</p>
+              <p><strong>Check-out:</strong> {formatDate(selectedBooking.checkOut)}</p>
+              <p><strong>Nights:</strong> {selectedBooking.nights}</p>
+              <p><strong>Guests:</strong> {selectedBooking.guests}</p>
+              <p><strong>Total:</strong> {formatCurrency(selectedBooking.totalPrice)}</p>
+              <p><strong>Status:</strong> <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[selectedBooking.status]}`}>{selectedBooking.status}</span></p>
+              {selectedBooking.notes && <p><strong>Notes:</strong> {selectedBooking.notes}</p>}
             </div>
             <div className="flex gap-2 flex-wrap">
               {(['CONFIRMED', 'CANCELLED', 'REFUNDED'] as const).filter(s => s !== selectedBooking.status).map(s => (
                 <button
                   key={s}
-                  onClick={() => updateStatus({ id: selectedBooking.id as string, status: s })}
+                  onClick={() => updateStatus({ id: selectedBooking.id, status: s })}
                   className="btn-secondary text-xs py-2 px-4"
                 >
                   Mark {s}

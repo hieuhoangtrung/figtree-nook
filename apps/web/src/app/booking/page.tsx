@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getPricePreview, createCheckout } from '@/lib/api';
@@ -20,7 +20,7 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-export default function BookingPage() {
+function BookingPageInner() {
   const params = useSearchParams();
   const router = useRouter();
   const checkIn = params.get('checkIn') || '';
@@ -168,5 +168,13 @@ export default function BookingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-airbnb-pink border-t-transparent rounded-full animate-spin" /></div>}>
+      <BookingPageInner />
+    </Suspense>
   );
 }
