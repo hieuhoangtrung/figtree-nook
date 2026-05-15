@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+
 import { useState } from 'react';
 import { Menu, X, Home } from 'lucide-react';
 
@@ -24,6 +25,7 @@ export default function Navbar() {
             <a href="#reviews" className="text-sm font-medium text-airbnb-gray hover:text-airbnb-dark transition-colors">Reviews</a>
             <a href="#location" className="text-sm font-medium text-airbnb-gray hover:text-airbnb-dark transition-colors">Location</a>
             <a href="#contact" className="text-sm font-medium text-airbnb-gray hover:text-airbnb-dark transition-colors">Contact</a>
+            <Link href="/my-booking" className="text-sm font-medium text-airbnb-gray hover:text-airbnb-dark transition-colors">My Booking</Link>
             <a
               href="#booking"
               className="btn-primary text-sm py-2 px-5"

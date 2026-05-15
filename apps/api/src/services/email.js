@@ -116,4 +116,49 @@ async function sendHostMessageNotification(message) {
   });
 }
 
-module.exports = { sendBookingConfirmation, sendHostBookingNotification, sendHostMessageNotification };
+async function sendOtpEmail(email, code) {
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+      <h2 style="color: #FF385C; margin-bottom: 4px;">🏡 Figtree Nook</h2>
+      <p style="color: #666; margin-top: 0;">Verification Code</p>
+      <div style="background: #f9fafb; border-radius: 16px; padding: 32px; text-align: center; margin: 24px 0;">
+        <p style="color: #666; margin: 0 0 12px;">Your verification code is:</p>
+        <p style="font-size: 40px; font-weight: bold; letter-spacing: 8px; color: #222; margin: 0;">${code}</p>
+        <p style="color: #999; font-size: 13px; margin: 16px 0 0;">Valid for 15 minutes</p>
+      </div>
+      <p style="color: #666; font-size: 13px;">If you didn't request this, you can safely ignore this email.</p>
+    </div>
+  `;
+  await transporter.sendMail({
+    from: `"Figtree Nook" <${process.env.EMAIL_FROM || process.env.SMTP_USER}>`,
+    to: email,
+    subject: `Your Figtree Nook verification code: ${code}`,
+    html,
+  });
+}
+
+async function sendRescheduleRequestNotification(booking, request) {
+  const html = `
+    <h2>📅 Reschedule Request Received</h2>
+    <p><strong>Guest:</strong> ${booking.guestName} (${booking.guestEmail})</p>
+    <p><strong>Current dates:</strong> ${formatDate(booking.checkIn)} → ${formatDate(booking.checkOut)}</p>
+    <p><strong>Requested dates:</strong> ${formatDate(request.requestedCheckIn)} → ${formatDate(request.requestedCheckOut)}</p>
+    ${request.guestNote ? `<p><strong>Guest note:</strong> ${request.guestNote}</p>` : ''}
+    <hr>
+    <p><a href="${process.env.NEXTAUTH_URL}/admin/bookings/${booking.id}">Review request in admin →</a></p>
+  `;
+  await transporter.sendMail({
+    from: `"Figtree Nook" <${process.env.EMAIL_FROM || process.env.SMTP_USER}>`,
+    to: process.env.HOST_EMAIL,
+    subject: `📅 Reschedule Request: ${booking.guestName}`,
+    html,
+  });
+}
+
+module.exports = {
+  sendBookingConfirmation,
+  sendHostBookingNotification,
+  sendHostMessageNotification,
+  sendOtpEmail,
+  sendRescheduleRequestNotification,
+};

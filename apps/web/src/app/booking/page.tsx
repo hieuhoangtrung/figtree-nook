@@ -1,7 +1,8 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import BookingVerifyStep from '@/components/BookingVerifyStep';
 import { useQuery } from '@tanstack/react-query';
 import { getPricePreview, createCheckout } from '@/lib/api';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -27,15 +28,22 @@ function BookingPageInner() {
   const checkOut = params.get('checkOut') || '';
   const guests = parseInt(params.get('guests') || '1');
 
+  // Step 1: contact details, Step 2: OTP verify, Step 3: payment form
+  const [step, setStep] = useState<'details' | 'verify' | 'payment'>('details');
+  const [contactDetails, setContactDetails] = useState({ guestEmail: '', guestPhone: '' });
+
   const { data: priceData, isLoading } = useQuery({
     queryKey: ['price-preview', checkIn, checkOut, guests],
     queryFn: () => getPricePreview(checkIn, checkOut, guests),
     enabled: !!(checkIn && checkOut),
   });
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
+
+  const watchEmail = watch('guestEmail', '');
+  const watchPhone = watch('guestPhone', '');
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -56,6 +64,13 @@ function BookingPageInner() {
     );
   }
 
+  // Step indicators
+  const steps = [
+    { key: 'details', label: 'Your details', num: 1 },
+    { key: 'verify', label: 'Verify', num: 2 },
+    { key: 'payment', label: 'Payment', num: 3 },
+  ];
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
@@ -64,54 +79,127 @@ function BookingPageInner() {
           Back to listing
         </Link>
 
-        <h1 className="text-2xl font-semibold mb-8">Confirm and pay</h1>
+        <h1 className="text-2xl font-semibold mb-6">Confirm and pay</h1>
+
+        {/* Step indicator */}
+        <div className="flex items-center gap-2 mb-8">
+          {steps.map((s, i) => (
+            <div key={s.key} className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
+                step === s.key ? 'bg-airbnb-dark text-white' :
+                steps.findIndex(x => x.key === step) > i ? 'bg-green-500 text-white' :
+                'bg-airbnb-border text-airbnb-gray'
+              }`}>
+                {steps.findIndex(x => x.key === step) > i ? '✓' : s.num}
+              </div>
+              <span className={`text-sm font-medium hidden sm:block ${step === s.key ? 'text-airbnb-dark' : 'text-airbnb-gray'}`}>{s.label}</span>
+              {i < steps.length - 1 && <div className="w-8 h-0.5 bg-airbnb-border mx-1" />}
+            </div>
+          ))}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Left: Guest details form */}
+          {/* Left: Steps */}
           <div>
-            <h2 className="text-xl font-semibold mb-6">Your details</h2>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Full name *</label>
-                <input {...register('guestName')} placeholder="As on your ID" className="input-field" />
-                {errors.guestName && <p className="text-red-500 text-xs mt-1">{errors.guestName.message}</p>}
+            {/* Step 1: Details */}
+            {(step === 'details' || step === 'verify' || step === 'payment') && (
+              <div className={step !== 'details' ? 'opacity-60 pointer-events-none' : ''}>
+                <h2 className="text-xl font-semibold mb-6">Your details</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Full name *</label>
+                    <input {...register('guestName')} placeholder="As on your ID" className="input-field" />
+                    {errors.guestName && <p className="text-red-500 text-xs mt-1">{errors.guestName.message}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Email address *</label>
+                    <input {...register('guestEmail')} type="email" placeholder="Confirmation sent here" className="input-field" />
+                    {errors.guestEmail && <p className="text-red-500 text-xs mt-1">{errors.guestEmail.message}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Phone number</label>
+                    <input {...register('guestPhone')} type="tel" placeholder="+61 4xx xxx xxx" className="input-field" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Message to host (optional)</label>
+                    <textarea {...register('notes')} rows={3} placeholder="Let the host know anything useful..." className="input-field resize-none" />
+                  </div>
+                  {step === 'details' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!watchEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(watchEmail)) {
+                          toast.error('Please enter a valid email address');
+                          return;
+                        }
+                        setContactDetails({ guestEmail: watchEmail, guestPhone: watchPhone || '' });
+                        setStep('verify');
+                      }}
+                      className="btn-primary w-full py-4 text-base"
+                    >
+                      Continue to verification →
+                    </button>
+                  )}
+                  {step !== 'details' && (
+                    <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 border border-green-200 rounded-xl p-3">
+                      <span>✅</span>
+                      <span>Details saved — {watchEmail}</span>
+                      <button onClick={() => setStep('details')} className="ml-auto text-xs underline text-airbnb-gray">Edit</button>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Email address *</label>
-                <input {...register('guestEmail')} type="email" placeholder="Confirmation sent here" className="input-field" />
-                {errors.guestEmail && <p className="text-red-500 text-xs mt-1">{errors.guestEmail.message}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Phone number</label>
-                <input {...register('guestPhone')} type="tel" placeholder="+61 4xx xxx xxx" className="input-field" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Message to host (optional)</label>
-                <textarea {...register('notes')} rows={3} placeholder="Let the host know anything useful..." className="input-field resize-none" />
-              </div>
+            )}
 
-              <div className="border border-airbnb-border rounded-xl p-4 bg-airbnb-light text-sm text-airbnb-gray">
-                <p className="font-medium text-airbnb-dark mb-1">House rules reminder</p>
-                <ul className="space-y-1">
-                  <li>✓ Check-in after 3:00 PM</li>
-                  <li>✓ Check-out before 11:00 AM</li>
-                  <li>✓ No smoking on the property</li>
-                  <li>✓ Maximum {guests} guest{guests > 1 ? 's' : ''}</li>
-                </ul>
+            {/* Step 2: Verify */}
+            {(step === 'verify' || step === 'payment') && (
+              <div className={`mt-8 ${step === 'payment' ? 'opacity-60 pointer-events-none' : ''}`}>
+                <h2 className="text-xl font-semibold mb-4">Verify your contact</h2>
+                {step === 'verify' ? (
+                  <BookingVerifyStep
+                    email={contactDetails.guestEmail}
+                    phone={contactDetails.guestPhone}
+                    onVerified={() => setStep('payment')}
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 border border-green-200 rounded-xl p-3">
+                    <span>✅</span>
+                    <span>Contact verified</span>
+                  </div>
+                )}
               </div>
+            )}
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="btn-primary w-full py-4 flex items-center justify-center gap-2 text-base"
-              >
-                <Lock className="w-4 h-4" />
-                {isSubmitting ? 'Redirecting to payment...' : 'Confirm and pay'}
-              </button>
-              <p className="text-xs text-center text-airbnb-gray">
-                By continuing, you agree to our terms. Payments are processed securely via Stripe.
-              </p>
-            </form>
+            {/* Step 3: Payment */}
+            {step === 'payment' && (
+              <div className="mt-8">
+                <h2 className="text-xl font-semibold mb-4">Complete payment</h2>
+                <div className="space-y-4">
+                  <div className="border border-airbnb-border rounded-xl p-4 bg-airbnb-light text-sm text-airbnb-gray">
+                    <p className="font-medium text-airbnb-dark mb-1">House rules reminder</p>
+                    <ul className="space-y-1">
+                      <li>✓ Check-in after 3:00 PM</li>
+                      <li>✓ Check-out before 11:00 AM</li>
+                      <li>✓ No smoking on the property</li>
+                      <li>✓ Maximum {guests} guest{guests > 1 ? 's' : ''}</li>
+                    </ul>
+                  </div>
+                  <form onSubmit={handleSubmit(onSubmit)}>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="btn-primary w-full py-4 flex items-center justify-center gap-2 text-base"
+                    >
+                      <Lock className="w-4 h-4" />
+                      {isSubmitting ? 'Redirecting to payment...' : 'Confirm and pay'}
+                    </button>
+                    <p className="text-xs text-center text-airbnb-gray mt-3">
+                      By continuing, you agree to our terms. Payments are processed securely via Stripe.
+                    </p>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right: Booking summary */}

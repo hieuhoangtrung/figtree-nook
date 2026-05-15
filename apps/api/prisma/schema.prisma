@@ -27,6 +27,10 @@ model Booking {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  scheduledMessages  ScheduledMessage[]
+  rescheduleRequests RescheduleRequest[]
+  conversations      Conversation[]
+
   @@index([checkIn, checkOut])
   @@index([status])
 }
@@ -92,6 +96,112 @@ model AdminUser {
   createdAt DateTime @default(now())
 }
 
+model VerificationCode {
+  id        String           @id @default(cuid())
+  target    String           // email address or phone number
+  code      String           // 6-digit code
+  type      VerifyType
+  expiresAt DateTime
+  verified  Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([target, type])
+}
+
+model MessageTemplate {
+  id               String       @id @default(cuid())
+  name             String
+  type             TemplateType
+  subject          String
+  bodyHtml         String
+  bodySms          String?
+  active           Boolean      @default(true)
+  preArrivalHours  Int?         // hours before check-in to send (for PRE_ARRIVAL type)
+  updatedAt        DateTime     @updatedAt
+  createdAt        DateTime     @default(now())
+
+  scheduledMessages ScheduledMessage[]
+}
+
+model ScheduledMessage {
+  id         String          @id @default(cuid())
+  bookingId  String
+  templateId String?
+  subject    String?
+  bodyHtml   String?
+  bodySms    String?
+  sendAt     DateTime
+  channel    MessageChannel  @default(EMAIL)
+  status     ScheduleStatus  @default(PENDING)
+  sentAt     DateTime?
+  error      String?
+  createdAt  DateTime        @default(now())
+
+  booking    Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  template   MessageTemplate? @relation(fields: [templateId], references: [id])
+
+  @@index([status, sendAt])
+  @@index([bookingId])
+}
+
+model RescheduleRequest {
+  id                  String          @id @default(cuid())
+  bookingId           String
+  requestedCheckIn    DateTime
+  requestedCheckOut   DateTime
+  status              RescheduleStatus @default(PENDING)
+  guestNote           String?
+  hostNote            String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+}
+
+model Conversation {
+  id          String    @id @default(cuid())
+  bookingId   String?
+  guestEmail  String
+  guestName   String
+  guestPhone  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  booking  Booking?              @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  messages ConversationMessage[]
+
+  @@index([guestEmail])
+  @@index([bookingId])
+}
+
+model ConversationMessage {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderType     SenderType
+  content        String
+  channel        MessageChannel @default(IN_APP)
+  createdAt      DateTime     @default(now())
+  readAt         DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+}
+
+model ThemeConfig {
+  id            String   @id @default(cuid())
+  primaryColor  String   @default("#FF385C")
+  accentColor   String   @default("#222222")
+  fontFamily    String   @default("Inter")
+  logoUrl       String?
+  heroHeadline  String   @default("Figtree Nook")
+  heroSubtext   String   @default("Private Studio in convenient Figtree location")
+  footerText    String   @default("© Figtree Nook · Figtree, NSW 2525, Australia")
+  updatedAt     DateTime @updatedAt
+}
+
 enum BookingStatus {
   PENDING
   CONFIRMED
@@ -102,4 +212,43 @@ enum BookingStatus {
 enum BlockSource {
   AIRBNB_ICAL
   MANUAL
+}
+
+enum VerifyType {
+  EMAIL
+  PHONE
+}
+
+enum TemplateType {
+  BOOKING_CONFIRM
+  PRE_ARRIVAL
+  CANCELLATION
+  RESCHEDULE_APPROVED
+  RESCHEDULE_DECLINED
+  CUSTOM
+}
+
+enum ScheduleStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum MessageChannel {
+  EMAIL
+  SMS
+  BOTH
+  IN_APP
+}
+
+enum SenderType {
+  GUEST
+  HOST
+}
+
+enum RescheduleStatus {
+  PENDING
+  APPROVED
+  DECLINED
 }

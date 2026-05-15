@@ -2,6 +2,7 @@ const router = require('express').Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { prisma } = require('../lib/prisma');
 const { sendBookingConfirmation, sendHostBookingNotification } = require('../services/email');
+const { schedulePreArrivalMessages } = require('../services/scheduler');
 
 router.post('/', async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -28,10 +29,11 @@ router.post('/', async (req, res) => {
           },
         });
 
-        // Send confirmation emails
+        // Send confirmation emails + schedule pre-arrival messages
         await Promise.all([
           sendBookingConfirmation(booking),
           sendHostBookingNotification(booking),
+          schedulePreArrivalMessages(booking),
         ]);
 
         console.log(`✅ Booking ${bookingId} confirmed via Stripe`);

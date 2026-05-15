@@ -12,7 +12,13 @@ const adminRoutes = require('./routes/admin');
 const pricingRoutes = require('./routes/pricing');
 const reviewRoutes = require('./routes/reviews');
 const stripeWebhook = require('./routes/stripeWebhook');
+const verifyRoutes = require('./routes/verify');
+const myBookingRoutes = require('./routes/myBooking');
+const templateRoutes = require('./routes/templates');
+const conversationRoutes = require('./routes/conversations');
+const themeRoutes = require('./routes/theme');
 const { startIcalSync } = require('./services/icalSync');
+const { startScheduler } = require('./services/scheduler');
 
 const app = express();
 const PORT = process.env.API_PORT || 4000;
@@ -43,6 +49,12 @@ app.use('/api/messages', messagingRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/pricing', pricingRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/verify', verifyRoutes);
+app.use('/api/my-booking', myBookingRoutes);
+app.use('/api/admin/templates', templateRoutes);
+app.use('/api/admin/conversations', conversationRoutes);
+app.use('/api/theme', themeRoutes);
+app.use('/api/admin/theme', themeRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -50,8 +62,8 @@ app.get('/api/health', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 API server running on port ${PORT}`);
-  // Start iCal sync cron job (every 4 hours)
   startIcalSync();
+  startScheduler();
 });
 
 module.exports = app;

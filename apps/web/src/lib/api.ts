@@ -82,3 +82,65 @@ export const addDiscountRule = (data: { minNights: number; discountPercent: numb
 
 export const deleteDiscountRule = (id: string) =>
   api.delete(`/api/pricing/discounts/${id}`).then(r => r.data);
+
+// OTP Verification
+export const sendVerificationCode = (target: string, type: 'EMAIL' | 'PHONE') =>
+  api.post('/api/verify/send', { target, type }).then(r => r.data);
+
+export const confirmVerificationCode = (target: string, type: 'EMAIL' | 'PHONE', code: string) =>
+  api.post('/api/verify/confirm', { target, type, code }).then(r => r.data);
+
+// Guest my-booking
+export const lookupBooking = (email: string, bookingId: string) =>
+  api.get('/api/my-booking', { params: { email, bookingId } }).then(r => r.data);
+
+export const cancelBooking = (bookingId: string, email: string, reason?: string) =>
+  api.post(`/api/my-booking/${bookingId}/cancel`, { email, reason }).then(r => r.data);
+
+export const requestReschedule = (bookingId: string, data: { email: string; requestedCheckIn: string; requestedCheckOut: string; guestNote?: string }) =>
+  api.post(`/api/my-booking/${bookingId}/reschedule`, data).then(r => r.data);
+
+export const sendGuestMessage = (bookingId: string, data: { email: string; name: string; content: string }) =>
+  api.post(`/api/my-booking/${bookingId}/message`, data).then(r => r.data);
+
+export const getBookingMessages = (bookingId: string, email: string) =>
+  api.get(`/api/my-booking/${bookingId}/messages`, { params: { email } }).then(r => r.data);
+
+// Admin conversations
+export const getConversations = (page?: number) =>
+  api.get('/api/admin/conversations', { params: { page } }).then(r => r.data);
+
+export const getConversationThread = (id: string) =>
+  api.get(`/api/admin/conversations/${id}/messages`).then(r => r.data);
+
+export const replyToConversation = (id: string, content: string, channel: string) =>
+  api.post(`/api/admin/conversations/${id}/reply`, { content, channel }).then(r => r.data);
+
+export const getUnreadCount = () =>
+  api.get('/api/admin/conversations/unread-count').then(r => r.data);
+
+export const getRescheduleRequests = () =>
+  api.get('/api/admin/conversations/reschedule-requests').then(r => r.data);
+
+export const resolveRescheduleRequest = (id: string, status: 'APPROVED' | 'DECLINED', hostNote?: string) =>
+  api.patch(`/api/admin/conversations/reschedule-requests/${id}`, { status, hostNote }).then(r => r.data);
+
+// Templates
+export const getTemplates = () =>
+  api.get('/api/admin/templates').then(r => r.data);
+
+export const createTemplate = (data: Record<string, unknown>) =>
+  api.post('/api/admin/templates', data).then(r => r.data);
+
+export const updateTemplate = (id: string, data: Record<string, unknown>) =>
+  api.patch(`/api/admin/templates/${id}`, data).then(r => r.data);
+
+export const deleteTemplate = (id: string) =>
+  api.delete(`/api/admin/templates/${id}`).then(r => r.data);
+
+// Theme
+export const getTheme = () =>
+  api.get('/api/theme').then(r => r.data);
+
+export const updateTheme = (data: Record<string, unknown>) =>
+  api.patch('/api/admin/theme', data).then(r => r.data);

@@ -9,9 +9,12 @@ const navItems = [
   { href: '/admin', label: 'Dashboard', icon: BarChart3 },
   { href: '/admin/bookings', label: 'Bookings', icon: Calendar },
   { href: '/admin/calendar', label: 'Calendar', icon: Calendar },
-  { href: '/admin/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/admin/conversations', label: 'Conversations', icon: MessageSquare },
+  { href: '/admin/messages', label: 'Contact Messages', icon: MessageSquare },
+  { href: '/admin/templates', label: 'Templates', icon: Settings },
   { href: '/admin/pricing', label: 'Pricing', icon: DollarSign },
   { href: '/admin/reviews', label: 'Reviews', icon: Settings },
+  { href: '/admin/theme', label: 'Theme', icon: Settings },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
